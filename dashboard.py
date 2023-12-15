@@ -314,6 +314,3 @@ def toggle(n, playing):
         return not playing
     return playing
 
-if __name__ == "__main__":
-    app.run_server(debug=True)
-
