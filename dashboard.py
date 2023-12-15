@@ -8,6 +8,7 @@ import numpy as np
 
 df = pd.read_csv("oil_consumption_mortality.csv")
 app = Dash(__name__)
+server = app.server
 
 years = list(set([year for year in df["Year"] if year % 1 == 0]))
 years.sort()
@@ -314,3 +315,5 @@ def toggle(n, playing):
         return not playing
     return playing
 
+if __name__ == '__main__':
+    app.run_server(debug=False)
