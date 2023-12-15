@@ -149,9 +149,8 @@ def create_mortality_bar_fig(year, continents):
                 },
         orientation='h',
         title=f'Top 10 Countries by Mortality Rate in {year}',
-        color_discrete_map={'Asia': '#00bf7d', 'Europe': '#00b4c5', 'Africa': '#8babf1', 'Americas': '#c44601', 'Oceania': '#054fb9'}
+        color_discrete_map={'Asia': '#648fff', 'Europe': '#785ef0', 'Africa': '#dc267f', 'North America': '#fe6100', 'South America': '#ffb000', 'Oceania': '#054fb9'}
     )
-
     fig.update_layout(
         xaxis=dict(range=[0, df["Mortality Rate"].max() * 1.1]),
         yaxis=dict(categoryorder='total ascending'),
@@ -180,7 +179,7 @@ def create_oil_bar_fig(year, continents):
                 },
         orientation='h',
         title=f'Top 10 Countries by Oil Consumption in {year}',
-        color_discrete_map={'Asia': '#00bf7d', 'Europe': '#00b4c5', 'Africa': '#8babf1', 'Americas': '#c44601', 'Oceania': '#054fb9'}
+        color_discrete_map={'Asia': '#648fff', 'Europe': '#785ef0', 'Africa': '#dc267f', 'North America': '#fe6100', 'South America': '#ffb000', 'Oceania': '#054fb9'}
     ).update_layout(
         xaxis=dict(range=[0, df["Oil Consumption per capita (tonnes per year)"].max() * 1.01]),
         yaxis=dict(categoryorder='total ascending'),
@@ -207,7 +206,7 @@ def create_gdp_bar_fig(year, continents):
                     "Mortality Rate": "Mortality Rate (per 1000 births)",
                 },
         title=f'Top 10 Countries by GDP in {year}',
-        color_discrete_map={'Asia': '#00bf7d', 'Europe': '#00b4c5', 'Africa': '#8babf1', 'Americas': '#c44601', 'Oceania': '#054fb9'}
+        color_discrete_map={'Asia': '#648fff', 'Europe': '#785ef0', 'Africa': '#dc267f', 'North America': '#fe6100', 'South America': '#ffb000', 'Oceania': '#054fb9'}
     ).update_layout(
         xaxis=dict(range=[0, df["GDP per capita (US$)"].max() * 1.01]),
         yaxis=dict(categoryorder='total ascending'),
