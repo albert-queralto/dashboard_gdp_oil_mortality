@@ -86,7 +86,7 @@ def create_density_contour_fig(year, continents):
                 size=(max(gdp_levels) - min(gdp_levels)) / len(gdp_levels),
             ),
             colorbar=dict(
-                title="GDP per capita (US$)",
+                title="GDP per capita (%)",
                 tickvals=gdp_levels,
                 ticktext=["Low (20 %)", "Medium (40 %)", "High (60 %)", "Very High (80 %)"],
             ),
