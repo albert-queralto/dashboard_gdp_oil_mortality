@@ -1,10 +1,7 @@
 from dash import Dash, dcc, html, Input, Output, State
-import plotly
-import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
-import numpy as np
 
 df = pd.read_csv("oil_consumption_mortality.csv")
 app = Dash(__name__)
@@ -15,24 +12,68 @@ years.sort()
 
 continents = list(set(df["Continent"]))
 
+# assign the countries that are from the oil producing countries
+oil_prod_10M_12M_barrels_day = ['United States', 'Saudi Arabia', 'Russia']
+oil_prod_1M_5M_barrels_day = [    
+    'Canada', 'China', 'Brazil', 'Iraq', 'Iran', 'Libya',
+    'United Arab Emirates', 'Kuwait', 'Kazakhstan', 'Angola',
+    'Mexico', 'Norway', 'Qatar', 'Oman', 'Nigeria', 'Algeria'
+]
+oil_prod_500k_1M_barrels_day = [
+    'Colombia', 'United Kingdom', 'Venezuela', 'Azerbaijan',
+    'Indonesia', 'India', 'Argentina', 'Egypt', 'Malaysia'
+]
+oil_prod_100k_500k_barrels_day = [
+    'Ecuador', 'Australia', 'Guyana', 'Congo, Rep.', 'Gabon',
+    'Turkmenistan', 'Bahrein', 'Ghana', 'Vietnam', 'South Sudan',
+    'Thailand', 'Equatorial Guinea',
+]
+oil_prod_10k_100k_barrels_day = [
+    'Syria', 'Italy', 'Brunei', 'Chad', 'Pakistan', 'Turkey',
+    'Sudan', 'Denmark', 'Romania', 'Cameroon', 'Trinidad and Tobago',
+    'Yemen', 'Peru', 'Papua New Guinea', 'Uzbekistan',
+    'Tunisia', 'Germany', 'Cuba', 'Belarus', 'Cote d\'Ivoire',
+    'Netherlands', 'Bolivia', 'Congo, Dem. Rep.', 'Hungary',
+    'Poland', 'Mongolia', 'Albania', 'Serbia', 'East Timor',
+    'Suriname', 'France', 'Croatia'
+]
+# assign the countries that are from the oil consuming countries
+# based on the list from above
+df['Oil Producing Countries'] = df['Country'].apply(
+    lambda x: '10M-12M barrels/day' 
+    if x in oil_prod_10M_12M_barrels_day else (
+    '1M-5M barrels/day'
+    if x in oil_prod_1M_5M_barrels_day else (
+    '500k-1M barrels/day'
+    if x in oil_prod_500k_1M_barrels_day else (
+    '100k-500k barrels/day'
+    if x in oil_prod_100k_500k_barrels_day else (
+    '10k-100k barrels/day'
+    if x in oil_prod_10k_100k_barrels_day else (
+    '<10k barrels/day'
+    ))))))
+
 def create_density_contour_fig(year, continents):
     mask = (df["Continent"].isin(continents) & (df["Year"] == year))
     filtered_df = df.loc[mask]
-    filtered_df.loc[:, 'log_GDP'] = np.log(filtered_df['GDP per capita (US$)'])
+    # filtered_df.loc[:, 'log_GDP'] = np.log(filtered_df['GDP per capita (US$)'])
     
-    gdp_levels = [10, 25, 50, 80]
+    # gdp_levels = [10, 25, 50, 80]
+    mortality_levels = [50, 100, 200, 400]
+    levels_text = ['Low (50)', 'Medium (100)', 'High (200)', 'Very High (400)']
     
     colors = ['#648fff', '#785ef0', '#dc267f', '#fe6100', '#ffb000']
     
-    x_range = [
-        0,
-        max(filtered_df["Mortality Rate"]) + 25
-    ]
+    # x_range = [
+    #     0,
+    #     # max(filtered_df["Mortality Rate"]) + 25
+    #     max(filtered_df["GDP per capita (US$)"]) + 1000
+    # ]
     
-    y_range = [
-        0,
-        max(filtered_df["Oil Consumption per capita (tonnes per year)"]) + 5
-    ]
+    # y_range = [
+    #     0,
+    #     max(filtered_df["Oil Consumption per capita (tonnes per year)"]) + 5
+    # ]
     
     fig = make_subplots(
         rows=1,
@@ -46,36 +87,37 @@ def create_density_contour_fig(year, continents):
     for i, continent in enumerate(continents, start=1):
         continent_df = filtered_df[filtered_df["Continent"] == continent]
         hist2d_contour = go.Histogram2dContour(
-            x=continent_df["Mortality Rate"],
+            x=continent_df["GDP per capita (US$)"],
             y=continent_df["Oil Consumption per capita (tonnes per year)"],
-            z=continent_df["GDP per capita (US$)"],
+            z=continent_df["Mortality Rate"],
             histfunc="avg",
-            histnorm="percent",
+            # histnorm="percent",
             colorscale=colors,
             autocontour=False,
             contours_coloring="fill",
             line=dict(width=1),
-            hovertemplate="Mortality Rate: %{x}<br>Oil Consumption: %{y}<br>Percent GDP per capita: %{z}<extra></extra>",
+            hovertemplate="Mortality Rate: %{z}<br>Oil Consumption: %{y}<br>GDP per capita: %{x}<extra></extra>",
             showscale=True,
             contours=dict(
-                start=min(gdp_levels),
-                end=max(gdp_levels),
-                size=(max(gdp_levels) - min(gdp_levels)) / len(gdp_levels),
+                start=min(mortality_levels),
+                end=max(mortality_levels),
+                size=(max(mortality_levels) - min(mortality_levels)) / len(mortality_levels),
             ),
             colorbar=dict(
-                title="GDP per capita (%)",
-                tickvals=gdp_levels,
-                ticktext=["Low (10 %)", "Medium (25 %)", "High (50 %)", "Very High (80 %)"],
+                title="Mortality Rate (per 1000 births)",
+                tickvals=mortality_levels,
+                # ticktext=["Low (10 %)", "Medium (25 %)", "High (50 %)", "Very High (80 %)"],
+                ticktext=levels_text,
             ),
         )
 
         fig.add_trace(hist2d_contour, row=1, col=i)
-        fig.update_xaxes(title_text="Mortality Rate", title_standoff=5, 
-                        range=x_range, #[-50, 500],
+        fig.update_xaxes(title_text="GDP per capita (US$)", title_standoff=5,
+                        # range=x_range, #[-50, 500],
                         title_font_size=14, row=1, col=i)
         fig.update_yaxes(title_text="Oil Consumption per<br>capita (tonnes per year)",
                         title_standoff=0, title_font_size=14,
-                        range=y_range, #[-5, 15],
+                        # range=y_range, #[-5, 15],
                         row=1, col=i)
 
     fig.update_layout(
@@ -119,7 +161,7 @@ def create_mortality_bar_fig(year, continents):
     top_10.reset_index(drop=True, inplace=True)
     
     mortality_levels = [50, 100, 200, 400]
-    levels_text = ['Low', 'Medium', 'High', 'Very High']
+    levels_text = ['Low (50)', 'Medium (100)', 'High (200)', 'Very High (400)']
     alpha_mapping = {
         50: 0.15,
         100: 0.3,
@@ -237,7 +279,7 @@ def create_oil_bar_fig(year, continents):
     top_10.reset_index(drop=True, inplace=True)
     
     oil_levels = [2, 4, 7.5, 10]
-    levels_text = ['Low', 'Medium', 'High', 'Very High']
+    levels_text = ['Low (2)', 'Medium (4)', 'High (7.5)', 'Very High (10)']
     alpha_mapping = {
         2: 0.15,
         4: 0.3,
@@ -296,7 +338,7 @@ def create_oil_bar_fig(year, continents):
                 textangle=90
             )
         )
-
+        
     traces = []
     legend_labels = set()
 
@@ -326,7 +368,7 @@ def create_oil_bar_fig(year, continents):
             legendgroup=continent,
             showlegend=False,
             name=continent,
-            hovertemplate=f"Continent: {continent}<br>Oil Consumption per capita (tonnes per year): {row['Oil Consumption per capita (tonnes per year)']}<br>Country: {row['Country']}"
+            hovertemplate=f"Continent: {continent}<br>Oil Consumption per capita: {row['Oil Consumption per capita (tonnes per year)']}<br>Country: {row['Country']}<br>Oil Production: {row['Oil Producing Countries']}"
         ))
 
     layout = go.Layout(
@@ -359,7 +401,7 @@ def create_gdp_bar_fig(year, continents):
     top_10.reset_index(drop=True, inplace=True)
     
     gdp_levels = [5000, 20000, 40000, 70000]
-    levels_text = ['Low', 'Medium', 'High', 'Very High']
+    levels_text = ['Low (5000)', 'Medium (20000)', 'High (40000)', 'Very High (70000)']
     alpha_mapping = {
         5000: 0.15,
         20000: 0.3,
@@ -513,19 +555,19 @@ app.layout = html.Div(
             children=[
                 dcc.Graph(
                     id="graph-with-slider", 
-                    style={'width': '33%', 'height': '275px', 'display': 'inline-block', 'margin': '0px', 'padding': '0px'}, 
+                    style={'width': '48%', 'height': '275px', 'display': 'inline-block', 'margin': '0px', 'padding': '0px'}, 
                     figure=create_mortality_bar_fig(df["Year"].min(), df["Continent"].unique().tolist())
                 ),
                 dcc.Graph(
                     id="graph-with-slider2",
-                    style={'width': '33%', 'height': '275px', 'display': 'inline-block', 'margin': '0px', 'padding': '0px'}, 
+                    style={'width': '48%', 'height': '275px', 'display': 'inline-block', 'margin': '0px', 'padding': '0px'}, 
                     figure=create_oil_bar_fig(df["Year"].min(), df["Continent"].unique().tolist())
                 ),
-                dcc.Graph(
-                    id="graph-with-slider4",
-                    style={'width': '33%', 'height': '275px', 'display': 'inline-block', 'margin': '0px', 'padding': '0px'}, 
-                    figure=create_gdp_bar_fig(df["Year"].min(), df["Continent"].unique().tolist())
-                ),
+                # dcc.Graph(
+                #     id="graph-with-slider4",
+                #     style={'width': '33%', 'height': '275px', 'display': 'inline-block', 'margin': '0px', 'padding': '0px'}, 
+                #     figure=create_gdp_bar_fig(df["Year"].min(), df["Continent"].unique().tolist())
+                # ),
             ],
             style={'margin': '10px 0px'}
         ),
@@ -539,7 +581,7 @@ app.layout = html.Div(
 @app.callback(
     Output("graph-with-slider", "figure"),
     Output("graph-with-slider2", "figure"),
-    Output("graph-with-slider4", "figure"),
+    # Output("graph-with-slider4", "figure"),
     Output("graph-with-slider3", "figure"),
     Output("year-slider", "value"),
     Input("animate", "n_intervals"),
@@ -556,7 +598,7 @@ def update_figures(n, selected_year, continents):
     return (
         create_mortality_bar_fig(year, continents), 
         create_oil_bar_fig(year, continents),
-        create_gdp_bar_fig(year, continents),
+        # create_gdp_bar_fig(year, continents),
         create_density_contour_fig(year, continents),
         year
     )
