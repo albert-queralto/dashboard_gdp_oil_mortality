@@ -56,19 +56,19 @@ def create_density_contour_fig(year, continents):
     filtered_df = df.loc[mask]
     mortality_levels = [50, 100, 200, 400]
     levels_text = ['Low (50)', 'Medium (100)', 'High (200)', 'Very High (400)']
-    
+
     colors = ['#648fff', '#785ef0', '#dc267f', '#fe6100', '#ffb000']
-    
+
     x_range = [
         0,
         max(filtered_df["GDP per capita (US$)"]) + 1000
     ]
-    
+
     y_range = [
         0,
         max(filtered_df["Oil Consumption per capita (tonnes per year)"]) + 5
     ]
-    
+
     fig = make_subplots(
         rows=1,
         cols=len(continents),
@@ -80,6 +80,10 @@ def create_density_contour_fig(year, continents):
 
     for i, continent in enumerate(continents, start=1):
         continent_df = filtered_df[filtered_df["Continent"] == continent]
+
+        # x_range_continent = max(continent_df["GDP per capita (US$)"]) + 1000
+        # y_range_continent = max(continent_df["Oil Consumption per capita (tonnes per year)"]) + 5
+        
         hist2d_contour = go.Histogram2dContour(
             x=continent_df["GDP per capita (US$)"],
             y=continent_df["Oil Consumption per capita (tonnes per year)"],
@@ -112,6 +116,88 @@ def create_density_contour_fig(year, continents):
                         range=y_range,
                         row=1, col=i)
 
+        # Add annotations for wars
+        wars_annotations = {
+            'Asia': {
+                'Vietnam': (1965, 1975),
+                'Vietnam-China': (1979, 1991),
+                'Indonesia-Malaysia': (1965, 1966),
+                'India-Pakistan': (1965, 1969),
+                'Korea': (1966, 1969),
+                'Israel': (1967, 1970),
+                'Cambodia': (1967, 1975),
+                'Cambodia-Vietnam': (1978, 1989),
+                'Soviet-Afghanistan': (1979, 1989),
+                'Iran-Iraq': (1974, 1975),
+                'Indonesia-Timor': (1975, 1976),
+                'Iran-Iraq': (1980, 1988),
+                'Malaysia': (1968, 1989),
+                'Azerbaijan': (1988, 1994),
+                'Gulf': (1990, 1991),
+                'Iraq': (2003, 2004),
+                'Afghanistan': (1989, 1992),
+                'Iraq': (1994, 1997),
+                'Afghanistan': (1996, 2002),
+            },
+            'Africa': {
+                'Sudan': (1965, 1972),
+                'Sudan': (1983, 2005),
+                'Congo': (1960, 1966),
+                'Egypt-Libya': (1977,),
+                'Algeria': (1991, 2002),
+                'Nigeria': (1967, 1970),
+                'Somalia-Ethiopia': (1977, 1978),
+                'Chad-Libya': (1978, 1987),
+                'Uganda-Tanzania': (1978, 1979),
+                'Yemen': (1979,),
+                'Ethiopia-Somalia': (1982,),
+                'Ethiopia': (1974, 1991),
+                'Lebanon': (1975, 1990),
+                'Angola': (1979, 2002),
+                'Chad-Nigeria': (1983,),
+                'Mauritania-Senegal': (1989, 1991),
+                'Congo': (1996, 1997),
+                'Congo': (1998, 2003),
+                'Eritrea-Ethiopia': (1998, 2000),
+                'Eritrea': (2008,),
+            },
+            'Europe': {
+                'Chechen Rep.': (1994, 1996),
+                'Chechen Rep.': (1999, 2000),
+                'Georgia': (1991, 1993),
+                'Albania': (1997,),
+                'Kosovo': (1998, 1999),
+            },
+        }
+
+        annotation_text = ''
+        for continent_key, wars in wars_annotations.items():
+            if continent == continent_key:
+                for war, years_range in wars.items():
+                    if len(years_range) == 1:
+                        annotation_text += f'{war}<br>'
+                    else:
+                        start_year, end_year = years_range
+                        if start_year <= year <= end_year:
+                            annotation_text += f'{war}<br>'
+
+        if annotation_text:
+            fig.add_annotation(
+                go.layout.Annotation(
+                    xref="x",
+                    yref="y",
+                    x=x_range[1] - 0.4 * (x_range[1] - x_range[0]),
+                    y=y_range[1] - 0.5 * (y_range[1] - y_range[0]),
+                    text=f'<b>Wars ({year}):</b><br>{annotation_text}',
+                    showarrow=False,
+                    font=dict(size=10, color='black'),
+                    align='left',
+                    bordercolor='black',
+                    borderwidth=1,
+                ),
+                row=1, col=i,
+            )
+
     fig.update_layout(
         title=f'Mortality Rate vs Oil Consumption and GDP per capita in {year}',
         margin=dict(l=20, r=20, t=50, b=20),
@@ -120,6 +206,7 @@ def create_density_contour_fig(year, continents):
     )
 
     return fig
+
 
 # def create_scatter_fig(year, continents):
 #     mask = (df["Continent"].isin(continents) & (df["Year"] == year))
