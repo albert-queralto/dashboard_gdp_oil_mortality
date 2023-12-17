@@ -12,7 +12,6 @@ years.sort()
 
 continents = list(set(df["Continent"]))
 
-# assign the countries that are from the oil producing countries
 oil_prod_10M_12M_barrels_day = ['United States', 'Saudi Arabia', 'Russia']
 oil_prod_1M_5M_barrels_day = [    
     'Canada', 'China', 'Brazil', 'Iraq', 'Iran', 'Libya',
@@ -37,8 +36,7 @@ oil_prod_10k_100k_barrels_day = [
     'Poland', 'Mongolia', 'Albania', 'Serbia', 'East Timor',
     'Suriname', 'France', 'Croatia'
 ]
-# assign the countries that are from the oil consuming countries
-# based on the list from above
+
 df['Oil Producing Countries'] = df['Country'].apply(
     lambda x: '10M-12M barrels/day' 
     if x in oil_prod_10M_12M_barrels_day else (
@@ -56,24 +54,20 @@ df['Oil Producing Countries'] = df['Country'].apply(
 def create_density_contour_fig(year, continents):
     mask = (df["Continent"].isin(continents) & (df["Year"] == year))
     filtered_df = df.loc[mask]
-    # filtered_df.loc[:, 'log_GDP'] = np.log(filtered_df['GDP per capita (US$)'])
-    
-    # gdp_levels = [10, 25, 50, 80]
     mortality_levels = [50, 100, 200, 400]
     levels_text = ['Low (50)', 'Medium (100)', 'High (200)', 'Very High (400)']
     
     colors = ['#648fff', '#785ef0', '#dc267f', '#fe6100', '#ffb000']
     
-    # x_range = [
-    #     0,
-    #     # max(filtered_df["Mortality Rate"]) + 25
-    #     max(filtered_df["GDP per capita (US$)"]) + 1000
-    # ]
+    x_range = [
+        0,
+        max(filtered_df["GDP per capita (US$)"]) + 1000
+    ]
     
-    # y_range = [
-    #     0,
-    #     max(filtered_df["Oil Consumption per capita (tonnes per year)"]) + 5
-    # ]
+    y_range = [
+        0,
+        max(filtered_df["Oil Consumption per capita (tonnes per year)"]) + 5
+    ]
     
     fig = make_subplots(
         rows=1,
@@ -91,7 +85,6 @@ def create_density_contour_fig(year, continents):
             y=continent_df["Oil Consumption per capita (tonnes per year)"],
             z=continent_df["Mortality Rate"],
             histfunc="avg",
-            # histnorm="percent",
             colorscale=colors,
             autocontour=False,
             contours_coloring="fill",
@@ -106,18 +99,17 @@ def create_density_contour_fig(year, continents):
             colorbar=dict(
                 title="Mortality Rate (per 1000 births)",
                 tickvals=mortality_levels,
-                # ticktext=["Low (10 %)", "Medium (25 %)", "High (50 %)", "Very High (80 %)"],
                 ticktext=levels_text,
             ),
         )
 
         fig.add_trace(hist2d_contour, row=1, col=i)
         fig.update_xaxes(title_text="GDP per capita (US$)", title_standoff=5,
-                        # range=x_range, #[-50, 500],
+                        range=x_range,
                         title_font_size=14, row=1, col=i)
         fig.update_yaxes(title_text="Oil Consumption per<br>capita (tonnes per year)",
                         title_standoff=0, title_font_size=14,
-                        # range=y_range, #[-5, 15],
+                        range=y_range,
                         row=1, col=i)
 
     fig.update_layout(
@@ -306,7 +298,7 @@ def create_oil_bar_fig(year, continents):
             return alpha_mapping[10]
         else:
             return 1
-    
+
     def get_color(continent):
         return color_mapping[continent]
 
