@@ -207,32 +207,6 @@ def create_density_contour_fig(year, continents):
 
     return fig
 
-
-# def create_scatter_fig(year, continents):
-#     mask = (df["Continent"].isin(continents) & (df["Year"] == year))
-#     return px.scatter(
-#         df.loc[mask],
-#         x="Mortality Rate",
-#         y="Oil Consumption per capita (tonnes per year)",
-#         size="GDP per capita (US$)",
-#         color="Continent",
-#         hover_name="Country",
-#         labels={
-#                     "Oil Consumption per capita (tonnes per year)": "Oil Consumption per capita<br>(tonnes per year)",
-#                     "Country": "Country",
-#                     "Continent": "Continent",
-#                     "Mortality Rate": "Mortality Rate (per 1000 births)",
-#                 },
-#         log_x=False,
-#         size_max=55,
-#         title=f'Mortality Rate vs Oil Consumption per capita in {year}',
-#     ).update_layout(
-#         xaxis=dict(range=[-df["Mortality Rate"].max() * 0.2, df["Mortality Rate"].max() * 1.1]),
-#         yaxis=dict(range=[-df["Oil Consumption per capita (tonnes per year)"].max() * 0.2, df["Oil Consumption per capita (tonnes per year)"].max() * 1.1]),
-#         margin=dict(l=20, r=20, t=30, b=20),
-#         font=dict(size=12)
-#     )
-
 def create_mortality_bar_fig(year, continents):
     mask = (df["Continent"].isin(continents) & (df["Year"] == year))
     top_10 = df[mask].nlargest(10, 'Mortality Rate')
@@ -642,11 +616,6 @@ app.layout = html.Div(
                     style={'width': '48%', 'height': '275px', 'display': 'inline-block', 'margin': '0px', 'padding': '0px'}, 
                     figure=create_oil_bar_fig(df["Year"].min(), df["Continent"].unique().tolist())
                 ),
-                # dcc.Graph(
-                #     id="graph-with-slider4",
-                #     style={'width': '33%', 'height': '275px', 'display': 'inline-block', 'margin': '0px', 'padding': '0px'}, 
-                #     figure=create_gdp_bar_fig(df["Year"].min(), df["Continent"].unique().tolist())
-                # ),
             ],
             style={'margin': '10px 0px'}
         ),
@@ -660,7 +629,6 @@ app.layout = html.Div(
 @app.callback(
     Output("graph-with-slider", "figure"),
     Output("graph-with-slider2", "figure"),
-    # Output("graph-with-slider4", "figure"),
     Output("graph-with-slider3", "figure"),
     Output("year-slider", "value"),
     Input("animate", "n_intervals"),
@@ -677,7 +645,6 @@ def update_figures(n, selected_year, continents):
     return (
         create_mortality_bar_fig(year, continents), 
         create_oil_bar_fig(year, continents),
-        # create_gdp_bar_fig(year, continents),
         create_density_contour_fig(year, continents),
         year
     )
